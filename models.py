@@ -1,46 +1,42 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Date, Time, Enum
+from sqlalchemy import Column, Integer, String, Float, Date, Time, Enum, ForeignKey
+from sqlalchemy.orm import relationship
 from config import Base
 
-# Enum для напрямку вітру
 class WindDirectionEnum(enum.Enum):
-    N = "N"
-    NNE = "NNE"
-    NE = "NE"
-    ENE = "ENE"
-    E = "E"
-    ESE = "ESE"
-    SE = "SE"
-    SSE = "SSE"
-    S = "S"
-    SSW = "SSW"
-    SW = "SW"
-    WSW = "WSW"
-    W = "W"
-    WNW = "WNW"
-    NW = "NW"
-    NNW = "NNW"
+    N = "N"; NNE = "NNE"; NE = "NE"; ENE = "ENE"
+    E = "E"; ESE = "ESE"; SE = "SE"; SSE = "SSE"
+    S = "S"; SSW = "SSW"; SW = "SW"; WSW = "WSW"
+    W = "W"; WNW = "WNW"; NW = "NW"; NNW = "NNW"
 
 class WeatherReport(Base):
     __tablename__ = "weather_reports"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    
-    # Базові колонки:
-    country = Column(String(100), nullable=False)                       # текстова
-    location_name = Column(String(100), nullable=False)                 # місто (для зручності)
-    wind_degree = Column(Integer, nullable=False)                       # ціле число
-    wind_kph = Column(Float, nullable=False)                            # дробове число
-    wind_direction = Column(Enum(WindDirectionEnum), nullable=False)    # enumeration
-    last_updated = Column(Date, nullable=False)                         # дата
-    sunrise = Column(Time, nullable=False)                              # час
+    country = Column(String(100), nullable=False)
+    location_name = Column(String(100), nullable=False)
+    wind_degree = Column(Integer, nullable=False)
+    wind_kph = Column(Float, nullable=False)
+    wind_direction = Column(Enum(WindDirectionEnum), nullable=False)
+    last_updated = Column(Date, nullable=False)
+    sunrise = Column(Time, nullable=False)
 
-    # Колонки варіанта №2 (Стан повітря / Air Quality):
-    air_quality_carbon_monoxide = Column(Float, nullable=True)
-    air_quality_ozone = Column(Float, nullable=True)
-    air_quality_nitrogen_dioxide = Column(Float, nullable=True)
-    air_quality_sulphur_dioxide = Column(Float, nullable=True)
-    air_quality_pm2_5 = Column(Float, nullable=True)
-    air_quality_pm10 = Column(Float, nullable=True)
-    air_quality_us_epa_index = Column(Integer, nullable=True)
-    air_quality_gb_defra_index = Column(Integer, nullable=True)
+    # Зв'язок 1-до-1 з новою таблицею стану повітря
+    air_quality = relationship("AirQuality", back_populates="weather_report", uselist=False, cascade="all, delete-orphan")
+
+class AirQuality(Base):
+    __tablename__ = "air_quality"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    weather_id = Column(Integer, ForeignKey("weather_reports.id", ondelete="CASCADE"), nullable=False, unique=True)
+
+    carbon_monoxide = Column(Float, nullable=True)
+    ozone = Column(Float, nullable=True)
+    nitrogen_dioxide = Column(Float, nullable=True)
+    sulphur_dioxide = Column(Float, nullable=True)
+    pm2_5 = Column(Float, nullable=True)
+    pm10 = Column(Float, nullable=True)
+    us_epa_index = Column(Integer, nullable=True)
+    gb_defra_index = Column(Integer, nullable=True)
+
+    weather_report = relationship("WeatherReport", back_populates="air_quality")
