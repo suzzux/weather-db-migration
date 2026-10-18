@@ -1,5 +1,5 @@
 import enum
-from sqlalchemy import Column, Integer, String, Float, Date, Time, Enum, ForeignKey
+from sqlalchemy import Column, Integer, String, Float, Date, Time, Enum, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from config import Base
 
@@ -38,5 +38,6 @@ class AirQuality(Base):
     pm10 = Column(Float, nullable=True)
     us_epa_index = Column(Integer, nullable=True)
     gb_defra_index = Column(Integer, nullable=True)
+    should_go_outside = Column(Boolean, nullable=False, default=True)
 
     weather_report = relationship("WeatherReport", back_populates="air_quality")
